@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block title %}智能中控台 - Gemini Enterprise{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-11">
+        
+        <ul class="nav nav-pills nav-fill mb-4 p-1 bg-white rounded-pill shadow-sm" id="mainTab" role="tablist">
+            <li class="nav-item">
+                <button class="nav-link active rounded-pill fw-bold" id="chat-tab" data-bs-toggle="tab" data-bs-target="#chat-pane" type="button">
+                    <i class="bi bi-chat-dots-fill me-2"></i>AI 智能助手
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link rounded-pill fw-bold" id="complaint-tab" data-bs-toggle="tab" data-bs-target="#complaint-pane" type="button" onclick="loadComplaints()">
+                    <i class="bi bi-clipboard-data-fill me-2"></i>客訴工單中心
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link rounded-pill fw-bold" id="analyze-tab" data-bs-toggle="tab" data-bs-target="#analyze-pane" type="button">
+                    <i class="bi bi-lightning-charge-fill me-2"></i>AI 輿情分析
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content">
+            
+            <div class="tab-pane fade show active" id="chat-pane">
+                <div class="card shadow border-0 rounded-4 overflow-hidden">
+                    <div class="card-header bg-primary text-white p-3 border-0">
+                        <i class="bi bi-robot"></i> General AI Chat
+                    </div>
+                    <div class="card-body bg-light chat-container" id="chat-box">
+                        <div class="text-center mt-5 mb-5" id="welcome-msg">
+                            <div class="mb-3 text-primary opacity-25"><i class="bi bi-stars display-1"></i></div>
+                            <h4 class="text-muted fw-bold">Gemini AI 準備就緒</h4>
+                            <p class="text-secondary">請輸入指令，支援 Markdown 與程式碼撰寫</p>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-white p-3 border-top-0">
+                        <form id="chat-form" class="d-flex gap-2">
+                            <input type="text" id="user-input" class="form-control form-control-lg rounded-pill bg-light border-0 px-4" placeholder="輸入訊息..." required>
+                            <button type="submit" class="btn btn-primary rounded-circle btn-lg shadow-sm" style="width: 50px; height: 50px;"><i class="bi bi-send-fill"></i></button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="complaint-pane">
+                <div class="row mb-4">
+                    <div class="col-md-8">
+                        <div class="card shadow-sm border-0 h-100 rounded-4">
+                            <div class="card-body d-flex align-items-center justify-content-around py-4">
+                                <div class="text-center">
+                                    <h6 class="text-muted small fw-bold">總案件</h6>
+                                    <h2 class="display-4 fw-bold text-dark mb-0" id="stat-total">0</h2>
+                                </div>
+                                <div class="vr opacity-25"></div>
+                                <div class="text-center">
+                                    <h6 class="text-muted small fw-bold">待處理</h6>
+                                    <h2 class="display-4 fw-bold text-warning mb-0" id="stat-pending">0</h2>
+                                </div>
+                                <div class="vr opacity-25"></div>
+                                <div class="text-center">
+                                    <h6 class="text-muted small fw-bold">已結案</h6>
+                                    <h2 class="display-4 fw-bold text-success mb-0" id="stat-resolved">0</h2>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card shadow-sm border-0 h-100 rounded-4">
+                            <div class="card-body position-relative d-flex flex-column justify-content-center">
+                                <h6 class="text-muted small fw-bold text-center mb-3">狀態分佈</h6>
+                                <div style="height: 140px; position: relative;"><canvas id="statusChart"></canvas></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <div class="card shadow-sm border-0 h-100 rounded-4">
+                            <div class="card-body bg-light">
+                                <h5 class="fw-bold mb-3 text-primary"><i class="bi bi-pen-fill"></i> 新增工單</h5>
+                                <textarea id="complaint-text" class="form-control border-0 bg-white shadow-sm mb-3" rows="8" placeholder="描述問題..."></textarea>
+                                <button id="submit-complaint" class="btn btn-primary w-100 rounded-pill fw-bold">提交 <i class="bi bi-arrow-right"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="card shadow-sm border-0 rounded-4 h-100">
+                            <div class="card-header bg-white border-0 py-3 d-flex justify-content-between">
+                                <h5 class="mb-0 fw-bold"><i class="bi bi-clock-history"></i> 歷史記錄</h5>
+                                <button class="btn btn-sm btn-outline-secondary rounded-pill" onclick="loadComplaints()"><i class="bi bi-arrow-clockwise"></i> 刷新</button>
+                            </div>
+                            <div class="card-body p-0" style="max-height: 500px; overflow-y: auto;">
+                                <div id="complaint-list" class="list-group list-group-flush"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="analyze-pane">
+                <div class="row justify-content-center">
+                    <div class="col-md-8">
+                        <div class="card shadow border-0 rounded-4">
+                            <div class="card-header bg-warning bg-gradient text-dark border-0 p-4">
+                                <h4 class="mb-0 fw-bold"><i class="bi bi-search-heart"></i> AI 客訴預判分析系統</h4>
+                                <p class="mb-0 opacity-75">
+                                    <strong>Powered by Gemini LLM:</strong> 自動執行情緒評分與意圖識別。
+                                </p>
+                            </div>
+                            <div class="card-body p-4">
+                                <textarea id="analyze-input" class="form-control bg-light border-0 mb-3" rows="4" placeholder="貼上客戶抱怨內容..."></textarea>
+                                <button id="btn-analyze" class="btn btn-dark w-100 rounded-pill py-2 fw-bold"><i class="bi bi-magic"></i> 開始分析</button>
+                                
+                                <div id="analyze-result-box" class="mt-4 p-4 bg-light rounded-4 border" style="display: none;">
+                                    <h5 class="fw-bold text-primary mb-3"><i class="bi bi-file-earmark-medical-fill"></i> 分析報告</h5>
+                                    <div id="analyze-content" class="text-dark lh-lg" style="white-space: pre-wrap;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
