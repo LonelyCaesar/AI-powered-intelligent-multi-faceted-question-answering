@@ -110,14 +110,11 @@ ICAP_Release_Package/
 
 ## 6. 疑難排解
 
-### Q1. 執行 `py` 指令時出現「無法辨識的詞彙」或「找不到指令」
-- 確認安裝 Python 時是否有勾選「Add Python to PATH」。
-- 解決方式：請重新執行 Python 安裝程式，選擇 `Modify` 並勾選相關選項。
+### Q1. Waitress 正式機伺服器：
+- 在 run.py 中，系統確實捨棄了 Flask 開發伺服器，改用了生產級的 from waitress import serve 來啟動。
 
-### Q2. 資料庫連線失敗 / Server 崩潰
-- 若使用 MSSQL，檢查 `.env` 中的 `DATABASE_URL` 是否填寫正確，以及客戶端電腦是否有 `ODBC Driver 18 for SQL Server`。
-- 確認 SQL Server 服務已啟動。
+### Q2. 隱藏連線紀錄 (200/302)：
+- 程式中明確寫了一行 logging.getLogger('waitress').setLevel(logging.ERROR)，這就是為什麼終端機會像圖片 Q3 所說的一樣，保持極度乾淨，不會一直跳出連線存取紀錄。
 
-### Q3. 為什麼終端機看不到任何存取紀錄 (如 200/302/304)？
-- 本系統基於效能與介面整潔考量，已將測試環境的 Flask Server 汰換為正式生產級的 Waitress Server。
-- 此為正常現象，只有在程式發生未預期錯誤時，終端機才會顯示紅字日誌。
+### Q3. MSSQL 支援：
+- MSSQL 支援：由於系統使用 Flask-SQLAlchemy 作為 ORM，並且支援 .env 動態設定連線字串，只要安裝了對應的 ODBC Driver 18 就能直接無縫接軌 SQL Server。
