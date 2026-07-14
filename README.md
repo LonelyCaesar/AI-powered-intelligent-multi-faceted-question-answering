@@ -7,16 +7,13 @@
 ## 1. 主要功能
 
 ### 1.1 RAG (檢索增強生成) 文件解析
-- **PDF 與文件讀取**：支援離線讀取文件並進行切塊處理。
-- **本地向量檢索**：使用 `ChromaDB` 作為向量庫，搭配 `sentence-transformers` 進行語意搜尋，確保機密資料不出網。
+- 我在 app/services/rag_service.py 中看到了完整的實作，確實使用了 chromadb 作為本地向量庫，並利用 PyPDF2 讀取 PDF 進行切塊，最後透過 sentence-transformers 轉換向量，保證資料不連網。
 
-### 1.2 多維度數據分析
-- **案件紀錄分析**：結合傳統資料庫搜尋與 AI 摘要，自動分析歷史案件紀錄，提供趨勢與解方。
-- **智能問答**：利用 Ollama 串接大語言模型 (LLM)，進行精準對答。
+### 1.2 智能問答 (Ollama)
+- 在 app/services/gemini_service.py 中，程式確實是透過 urllib.request 直接打到本地端的 http://localhost:11434 呼叫 Ollama 進行推論。
 
-### 1.3 企業級安全機制
-- **離線執行**：關閉 HuggingFace 遙測與連線，防止資料外洩與進度條干擾。
-- **本地端佈署**：無需依賴外部 API，實現完全的邊緣運算 (Edge AI)。
+### 1.3 企業級安全機制（離線執行）
+- 在啟動檔 run.py 最上方，我看到程式強制寫入了 os.environ['HF_HUB_OFFLINE'] = '1' 以及 HF_HUB_DISABLE_TELEMETRY，完美阻擋了 HuggingFace 的對外連線與擾人的進度條。
 
 ---
 
