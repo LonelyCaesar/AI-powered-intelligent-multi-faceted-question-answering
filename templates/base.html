@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}AI-多維度智慧問答{% endblock %}</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/atom-one-dark.min.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="bg-light">
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm mb-4">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="#">
+                <i class="bi bi-robot me-2"></i>AI-多維度智慧問答
+            </a>
+            <div class="d-flex align-items-center">
+                <span class="navbar-text text-white-50 small me-3 d-none d-md-inline">系統展示版</span>
+                {% if session.get('logged_in') %}
+                <button class="btn btn-sm btn-warning rounded-pill me-2 fw-bold" id="nav-user-btn"><i class="bi bi-people-fill me-1"></i>帳戶管理</button>
+                {% endif %}
+                {% if session.get('logged_in') %}
+                <a href="{{ url_for('auth.logout') }}" class="btn btn-sm btn-outline-light rounded-pill"><i class="bi bi-box-arrow-right me-1"></i>登出</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <div class="container main-container">
+        {% block content %}{% endblock %}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            },
+            startup: {
+                typeset: false
+            }
+        };
+    </script>
+    
+    {% if session.get('logged_in') %}
+    <!-- User Management Modal -->
+    <div class="modal fade" id="userModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header bg-warning">
+                    <h5 class="modal-title fw-bold text-dark"><i class="bi bi-people-fill me-2"></i>帳戶與權限管理</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    {% if session.get('role') == 'superadmin' %}
+                    <div class="card mb-4">
+                        <div class="card-header bg-light fw-bold">新增管理員/客服帳號</div>
+                        <div class="card-body">
+                            <form id="addUserForm" class="row g-3">
+                                <div class="col-md-2">
+                                    <input type="text" class="form-control" id="newUsername" placeholder="帳號名稱" required>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="input-group">
+                                        <input type="password" class="form-control" id="newPassword" placeholder="密碼" required>
+                                        <button class="btn btn-outline-secondary px-2" type="button" id="togglePassword">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <input type="text" class="form-control" id="newName" placeholder="姓名 (選填)">
+                                </div>
+                                <div class="col-md-3">
+                                    <input type="email" class="form-control" id="newEmail" placeholder="信箱 (選填)">
+                                </div>
+                                <div class="col-md-2">
+                                    <select class="form-select" id="newRole" required>
+                                        <option value="member">一般會員 (Customer)</option>
+                                        <option value="admin">客服/系統管理員 (Admin)</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-1">
+                                    <button type="submit" class="btn btn-primary w-100 px-1">新增</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <h6 class="fw-bold mb-3">現有帳戶列表</h6>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>帳號</th>
+                                    <th>密碼</th>
+                                    <th>姓名</th>
+                                    <th>信箱</th>
+                                    <th>角色權限</th>
+                                    <th>建立時間</th>
+                                    <th class="text-end">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="userTableBody">
+                                <!-- Users will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% block scripts %}
+    <script>window.USER_ROLE = "{{ session.get('role', 'admin') }}";</script>
+    <script src="{{ url_for('static', filename='script.js') }}?v=1.12"></script>
+    {% endblock %}
+</body>
+</html>
